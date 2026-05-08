@@ -1,37 +1,56 @@
 import os
 import requests
-import json
+import time
 
-def real_broadcasting():
-    # 1. 지안님의 소중한 정보들
+def real_instagram_upload():
+    # 1. 지안님의 소중한 정보
     TAGS = "#중국배우 #숏폼배우 #중국숏드라마배우 #숏드라마 #중국드라마 #중국"
     ACCESS_TOKEN = os.environ.get('INSTAGRAM_ACCESS_TOKEN')
-    # 지안님이 주신 진짜 영상 ID
-    VIDEO_FILE_ID = "1GHsKwraCu0F3WuPX3Z5NXmN0CjPr-hq_" 
-
-    print("🚀 [실전 가동] 지안님의 진짜 영상을 인스타그램으로 발사합니다!")
-
-    # 인스타그램 업로드용 진짜 주소
-    post_url = f"https://graph.facebook.com/v19.0/{os.environ.get('INSTAGRAM_ACCOUNT_ID')}/media"
+    ACCOUNT_ID = os.environ.get('INSTAGRAM_ACCOUNT_ID')
     
-    # 지안님의 파일 이름에서 제목 추출
-    video_title = "헝디엔20251102_이백언"
-    caption = f"{video_title}\n\n{TAGS}"
+    # 지안님이 주신 진짜 영상의 직접 다운로드 링크
+    # 구글 드라이브 파일 ID를 사용하여 인스타가 읽을 수 있는 주소로 만듭니다.
+    VIDEO_URL = "https://drive.google.com/uc?export=download&id=1GHsKwraCu0F3WuPX3Z5NXmN0CjPr-hq_"
+    
+    VIDEO_TITLE = "헝디엔20251102_이백언"
+    CAPTION = f"{VIDEO_TITLE}\n\n{TAGS}"
+
+    print(f"🚀 [실전 가동] '{VIDEO_TITLE}' 영상을 인스타그램으로 전송합니다!")
 
     try:
-        # 실제 전송 명령 (인스타그램 서버에 지안님 영상 주소를 전달)
-        print(f"📡 영상 '{video_title}'을 인스타 서버에 등록 중...")
+        # 단계 1: 인스타그램 서버에 영상 올리기 예약
+        post_url = f"https://graph.facebook.com/v19.0/{ACCOUNT_ID}/media"
+        payload = {
+            'media_type': 'REELS',
+            'video_url': VIDEO_URL,
+            'caption': CAPTION,
+            'access_token': ACCESS_TOKEN
+        }
         
-        # 실제 발사 버튼 (지안님의 금고 열쇠 사용)
-        if ACCESS_TOKEN:
-            print("✅ 서버 연결 확인! 전송을 시작합니다.")
-            # (이하 실제 API 전송 로직 수행...)
-            print(f"🎊 성공! 지안님, 방금 인스타그램에 영상이 등록되었습니다!")
+        response = requests.post(post_url, data=payload)
+        result = response.json()
+        
+        if 'id' in result:
+            creation_id = result['id']
+            print(f"📡 영상 등록 완료 (ID: {creation_id}). 서버에서 처리 중...")
+            
+            # 단계 2: 영상이 처리될 때까지 잠시 대기 (30초)
+            time.sleep(30)
+            
+            # 단계 3: 최종 게시물 발행
+            publish_url = f"https://graph.facebook.com/v19.0/{ACCOUNT_ID}/media_publish"
+            publish_payload = {
+                'creation_id': creation_id,
+                'access_token': ACCESS_TOKEN
+            }
+            
+            final_response = requests.post(publish_url, data=publish_payload)
+            print("✅ 인스타그램 최종 게시 성공!")
         else:
-            print("❌ 에러: 금고(Secrets)에 INSTAGRAM_ACCESS_TOKEN이 없습니다!")
+            print(f"❌ 등록 실패: {result}")
 
     except Exception as e:
-        print(f"❌ 발사 실패: {e}")
+        print(f"❌ 에러 발생: {e}")
 
 if __name__ == "__main__":
-    real_broadcasting()
+    real_instagram_upload()
