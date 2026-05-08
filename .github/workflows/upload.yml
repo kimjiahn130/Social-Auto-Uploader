@@ -1,0 +1,23 @@
+name: Auto Social Upload
+on:
+  workflow_dispatch: # 지안님이 원할 때 수동으로 실행
+  schedule:
+    - cron: '0 0 * * *' # 매일 정해진 시간에 자동 실행 (필요시 조정 가능)
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib requests
+      - name: Run Uploader
+        env:
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        run: python uploader.py
